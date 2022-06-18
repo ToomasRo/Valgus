@@ -2,7 +2,7 @@ import dotenv
 import os
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 import pymongo
@@ -41,19 +41,26 @@ app.add_middleware(
 
 
 @app.post("/create")
-async def create_package(package_id: str, shelf_id: str):
+async def create_package(req:Request):
+    req = await req.json()
+    packageIdList = req["packageIdList"]
+    shelfId = req["shelfId"]
+    print(packageIdList)
+    print(shelfId)
+    
     # put new thing to db
-    package = {
-        "id": package_id,
-        "shelf_id": shelf_id,
-        "timestamp": datetime.now(),
-    }
 
-    collection.insert_one(package)
+    # package = {
+    #     "id": package_id,
+    #     "shelf_id": shelf_id,
+    #     "timestamp": datetime.now(),
+    # }
+
+    # collection.insert_one(package)
 
     return {
         "message": "success",
-        "debug": f"created package_id {package_id}, on shelf {shelf_id}",
+        #"debug": f"created package_id {package_id}, on shelf {shelf_id}",
     }
 
 
@@ -98,6 +105,9 @@ async def getall():
     return {"message": docs}
 
 
-@app.post("/test/")
-async def test(pack:str):
-    return {"message": "success", "data": pack}
+@app.post("/test")
+async def test(pack:Request):
+    print(pack)
+    req = await pack.json()
+    print(req["pack_id"])
+    return {"message": "success"}
