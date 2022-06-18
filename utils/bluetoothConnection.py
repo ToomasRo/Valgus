@@ -5,6 +5,7 @@ bluetooth = None
 
 
 def init(comport):
+    global bluetooth
     print("Start")
     # This will be different for various devices and on windows it will probably be a COM port.
     port = comport
@@ -15,17 +16,19 @@ def init(comport):
 
 
 def close():
+    global bluetooth
     bluetooth.close()  # Otherwise the connection will remain open until a timeout which ties up the /dev/thingamabob
     print("Done")
 
 
 def send(data):
+    global bluetooth
     print(f"Sending {data}")
     bluetooth.write(data.encode("utf-8"))
 
 
 def main():
-    init("COM4")
+    init("COM5")
     send("A-1")
     close()
 
