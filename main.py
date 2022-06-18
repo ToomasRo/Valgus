@@ -100,7 +100,7 @@ async def find_package(package_id: str):
 
 
 @app.delete("/delete")
-async def delete_package(package_id: str, mock: int = 1):
+async def delete_package(package_id: str, mock: int = 0):
     # update db
     if mock == 1:
         print(f"Deleted package {package_id}")
