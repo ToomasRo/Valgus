@@ -7,6 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import pymongo
 
+# bluetooth microcontroller import
+import utils.bluetoothConnection as btconn
+
+
 # db connection
 dotenv.load_dotenv()
 DBUSER = os.getenv("DBUSER")
@@ -15,8 +19,11 @@ DBURI = os.getenv("DBURI")
 CONNECT_STR = f"mongodb+srv://{DBUSER}:{DBPASS}@{DBURI}/?retryWrites=true&w=majority"
 
 client = pymongo.MongoClient(CONNECT_STR)
-# db = client.test
 collection = client.db.packs
+
+# setting up the bluetooth connection
+btconn.init(os.getenv("COMPORT"))
+
 
 app = FastAPI()
 
@@ -67,8 +74,6 @@ async def create_package(req:Request):
 # also sends a request to the esp server
 @app.get("/find")
 async def find_package(package_id: str):
-    # Important TODO: communicate to microcontroller the need to light up that shelf
-
     # query db
     query = {"id": package_id}
     all_documents = collection.find(query)
@@ -76,6 +81,10 @@ async def find_package(package_id: str):
     for doc in all_documents:
         shelf_ids.append(doc["shelf_id"])
     print(shelf_ids)
+    
+    # Important TODO: communicate to microcontroller the need to light up that shelf
+    btconn.send(shelf_ids)
+
     return {"message": shelf_ids, "debug": f"finding pakki {package_id}"}
 
 
