@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import pymongo
-
+import serial
 # bluetooth microcontroller import
 import utils.bluetoothConnection as btconn
 
@@ -22,8 +22,10 @@ client = pymongo.MongoClient(CONNECT_STR)
 collection = client.db.packs
 
 # setting up the bluetooth connection
-btconn.init(os.getenv("COMPORT"))
-
+try:
+    btconn.init(os.getenv("COMPORT"))
+except serial.serialutil.SerialException:
+    print("Did not start bluetooth connection")
 
 app = FastAPI()
 
@@ -72,7 +74,7 @@ async def create_package(req: Request):
 
     except pymongo.errors.DuplicateKeyError as dke:
         print(dke)
-        raise HTTPException(status_code=400, detail="Item not found")
+        raise HTTPException(status_code=400, detail="Already existing package!")
 
 
 # takes in package, return the correct shelf_id
@@ -87,8 +89,12 @@ async def find_package(package_id: str):
         shelf_ids.append(doc["shelf_id"])
     print(shelf_ids)
 
-    for shelf_id in shelf_ids:
-        btconn.send(shelf_id)
+    try:
+        for shelf_id in shelf_ids:
+            btconn.send(shelf_id)
+    except Exception as e:
+        print(e)
+
 
     return {"message": shelf_ids, "debug": f"finding pakki {package_id}"}
 
