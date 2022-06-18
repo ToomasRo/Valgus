@@ -47,20 +47,19 @@ async def create_package(req:Request):
     shelfId = req["shelfId"]
     print(packageIdList)
     print(shelfId)
-    
+
     # put new thing to db
-
-    # package = {
-    #     "id": package_id,
-    #     "shelf_id": shelf_id,
-    #     "timestamp": datetime.now(),
-    # }
-
-    # collection.insert_one(package)
+    for packId in packageIdList:
+        package = {
+            "id": packId,
+            "shelf_id": shelfId,
+            "timestamp": datetime.now(),
+        }
+        collection.insert_one(package)
 
     return {
         "message": "success",
-        #"debug": f"created package_id {package_id}, on shelf {shelf_id}",
+        "debug": f"created packages {packageIdList}, on shelf {shelfId}",
     }
 
 
@@ -68,6 +67,8 @@ async def create_package(req:Request):
 # also sends a request to the esp server
 @app.get("/find")
 async def find_package(package_id: str):
+    # Important TODO: communicate to microcontroller the need to light up that shelf
+
     # query db
     query = {"id": package_id}
     all_documents = collection.find(query)
