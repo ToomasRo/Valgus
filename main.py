@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 import pymongo
 
 # db connection
