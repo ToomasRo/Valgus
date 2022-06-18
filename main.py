@@ -18,6 +18,25 @@ collection = client.db.packs
 
 app = FastAPI()
 
+origins = [
+    # TODO viisakamalt, see vajalik et brauser vastu võtaks neid pilte
+    "http://localhost:3000",
+    "http://localhost",
+    "http://localhost:8080",
+    "https://localhost:3000",
+    "https://localhost",
+    "https://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 @app.post("/create")
 async def create_package(package_id: str, shelf_id: str):
@@ -75,3 +94,8 @@ async def getall():
         )
     print(docs)
     return {"message": docs}
+
+
+@app.post("/test/")
+async def test(pack:str):
+    return {"message": "success", "data": pack}
