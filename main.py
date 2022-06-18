@@ -2,7 +2,7 @@ import dotenv
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import pymongo
@@ -46,28 +46,33 @@ app.add_middleware(
 )
 
 
-
 @app.post("/create")
-async def create_package(req:Request):
-    req = await req.json()
-    packageIdList = req["packageIdList"]
-    shelfId = req["shelfId"]
-    print(packageIdList)
-    print(shelfId)
+async def create_package(req: Request):
 
-    # put new thing to db
-    for packId in packageIdList:
-        package = {
-            "id": packId,
-            "shelf_id": shelfId,
-            "timestamp": datetime.now(),
+    try:
+        req = await req.json()
+        packageIdList = req["packageIdList"]
+        shelfId = req["shelfId"]
+        print(packageIdList)
+        print(shelfId)
+
+        # put new thing to db
+        for packId in packageIdList:
+            package = {
+                "id": packId,
+                "shelf_id": shelfId,
+                "timestamp": datetime.now(),
+            }
+            collection.insert_one(package)
+
+        return {
+            "message": "success",
+            "debug": f"created packages {packageIdList}, on shelf {shelfId}",
         }
-        collection.insert_one(package)
 
-    return {
-        "message": "success",
-        "debug": f"created packages {packageIdList}, on shelf {shelfId}",
-    }
+    except pymongo.errors.DuplicateKeyError as dke:
+        print(dke)
+        raise HTTPException(status_code=400, detail="Item not found")
 
 
 # takes in package, return the correct shelf_id
@@ -81,9 +86,9 @@ async def find_package(package_id: str):
     for doc in all_documents:
         shelf_ids.append(doc["shelf_id"])
     print(shelf_ids)
-    
-    # Important TODO: communicate to microcontroller the need to light up that shelf
-    btconn.send(shelf_ids)
+
+    for shelf_id in shelf_ids:
+        btconn.send(shelf_id)
 
     return {"message": shelf_ids, "debug": f"finding pakki {package_id}"}
 
@@ -116,7 +121,7 @@ async def getall():
 
 
 @app.post("/test")
-async def test(pack:Request):
+async def test(pack: Request):
     print(pack)
     req = await pack.json()
     print(req["pack_id"])
