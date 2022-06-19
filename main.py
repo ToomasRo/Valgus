@@ -37,11 +37,13 @@ origins = [
     "https://localhost:3000",
     "https://localhost",
     "https://localhost:8080",
+    "127.0.0.1:2137"
+    "*"
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex='.*',
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
